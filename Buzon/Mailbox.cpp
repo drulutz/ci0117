@@ -8,11 +8,11 @@
 
 using namespace std;
 
-// structure to message a package 
-struct mesg_buffer { 
-    long mtype; 
+// structure to message a package
+struct mesg_buffer {
+    long mtype;
     float casiPi;
-}; 
+};
 
 
 //Constructor por llave
@@ -22,32 +22,32 @@ Mailbox::Mailbox(key_t key, int tipo)
   this->key = key;
   if(tipo == 0)
   {
-    //Crea el buzon  
+    //Crea el buzon
     this->mailboxId = msgget(key,0666 | IPC_CREAT);
   }
   else
   {
-    //Busca el buzon 
+    //Busca el buzon
     this->mailboxId = msgget(key,0666);
   }
-  
+
 }
 
 
 Mailbox::~Mailbox()
 {
 
-   //destroy the message queue 
-   msgctl(this->mailboxId, IPC_RMID, NULL); 
+   //destroy the message queue
+   msgctl(this->mailboxId, IPC_RMID, NULL);
 }
 
 void Mailbox::send(int mtype, float casiPi)
 {
-  	mesg_buffer package;
+  mesg_buffer package;
  	package.mtype = mtype;
 	package.casiPi = casiPi;
 
- 	if(msgsnd(this->mailboxId, &package, sizeof(package),0) == -1)
+ 	if(msgsnd(this->mailboxId, &package, sizeof(float),IPC_NOWAIT) == -1)
  	{
 		perror("msgsnd error");
         exit(EXIT_FAILURE);
@@ -56,17 +56,17 @@ void Mailbox::send(int mtype, float casiPi)
 
 float Mailbox::receive(int mtype)
 {
-       mesg_buffer recv;  
+       mesg_buffer recv;
 
-       if(msgrcv(this->mailboxId, &recv, sizeof(recv),mtype, 0) == -1)
+       if(msgrcv(this->mailboxId, &recv, sizeof(float),mtype, 0) == -1)
 	   {
-			if (errno != ENOMSG) 
+			if (errno != ENOMSG)
 			{
                  perror("msgrcv");
                  exit(EXIT_FAILURE);
 			}
-            		
+
 	   }
-                                                                                                                            	  
+
       return recv.casiPi;
 }
